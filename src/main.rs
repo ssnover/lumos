@@ -1,14 +1,12 @@
+use std::error::Error;
 use std::net::{IpAddr, Ipv4Addr};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::TryRecvError;
 use std::sync::Arc;
-use std::error::Error;
 
 use borealis::Aurora;
 use helles::Server;
 use lighthouse;
-use tokio::runtime::Runtime;
-
 
 fn main() -> Result<(), Box<dyn Error>> {
     println!("Starting lumos...");
@@ -17,7 +15,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let r = running.clone();
     ctrlc::set_handler(move || {
         r.store(false, Ordering::SeqCst);
-    }).unwrap();
+    })
+    .unwrap();
 
     let (server, rx) = Server::new("/tmp/lumos.sock")?;
     let server_context = Server::start(server, running.clone());
@@ -31,7 +30,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     running.store(false, Ordering::SeqCst);
                 }
                 _ => {}
-            }
+            },
         }
     }
 
@@ -41,7 +40,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 
 fn handle_cmd(cmd: String) {
-
     // TODO: This function is a hot mess
     // TODO: Come up with a [de]serialization of json commands
     // TODO: Come up with a [de]serialization of programming for buttons
@@ -58,39 +56,37 @@ fn handle_cmd(cmd: String) {
         );
 
         let hue_bridge = lighthouse::bridge::Bridge::new(
-            IpAddr::V4(Ipv4Addr::new(192, 168, 1, 7)), 
-            "iNfKbUViaMmSITeJ5MPQlKA0-jsIJpsFK0nhjCRU".to_string()).unwrap();
-    
+            IpAddr::V4(Ipv4Addr::new(192, 168, 1, 7)),
+            "iNfKbUViaMmSITeJ5MPQlKA0-jsIJpsFK0nhjCRU".to_string(),
+        )
+        .unwrap();
+
         println!("Executing the cmd: {}", cmd);
         let mut runtime = tokio::runtime::Builder::new()
             .basic_scheduler()
             .enable_all()
             .build()
             .expect("Failed to build async runtime");
-    
-        runtime.block_on(async { 
-            match button_id {
-                111 => {
-                    aurora.turn_on().await.unwrap();
-                },
-                113 => {
-                    aurora.turn_off().await.unwrap();
-                },
-                _ => {
-                    //
-                },
-            }
-        });
 
         match button_id {
+            111 => {
+                runtime.block_on(async { aurora.turn_on().await.unwrap() });
+            }
+            113 => {
+                runtime.block_on(async { aurora.turn_off().await.unwrap() });
+            }
             116 => {
                 // Hue lights on
-                hue_bridge.state_to_multiple(vec![2, 3], vec![lighthouse::state!(on: true, bri: 255); 2]);
-            },
+                hue_bridge
+                    .state_to_multiple(vec![2, 3], vec![lighthouse::state!(on: true, bri: 255); 2])
+                    .unwrap();
+            }
             118 => {
                 // Hue lights off
-                hue_bridge.state_to_multiple(vec![2, 3], vec![lighthouse::state!(on: false); 2]);
-            },
+                hue_bridge
+                    .state_to_multiple(vec![2, 3], vec![lighthouse::state!(on: false); 2])
+                    .unwrap();
+            }
             _ => {
                 //
             }
