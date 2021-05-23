@@ -1,0 +1,6 @@
+[submodule "lumos_msgs"]
+	path = lumos_msgs
+	url = git@github.com:ssnover/lumos_msgs.git
+[submodule "borealis"]
+	path = borealis
+	url = git@github.com:ssnover/borealis.git

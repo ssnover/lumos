@@ -1,0 +1,15 @@
+[package]
+name = "lumos"
+version = "0.1.0"
+authors = ["Shane Snover <ssnover95@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+borealis = { path = "../borealis" }
+ctrlc = "3.1"
+futures = "0.3"
+paho-mqtt = "0.9"
+protobuf = "2.9"
+tokio = { version = "0.2", features=["rt-core", "stream"]}
+serde = "1.0"
+serde_json = "1.0"
