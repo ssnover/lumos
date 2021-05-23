@@ -43,7 +43,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let mut rx = mqtt_client.get_stream(10);
         let connect_opts = mqtt::ConnectOptionsBuilder::new()
             .keep_alive_interval(Duration::from_secs(30))
-            .mqtt_version(mqtt::MQTT_VERSION_5)
+            .mqtt_version(mqtt::MQTT_VERSION_3_1_1)
             .finalize();
         println!("Making connection to the MQTT broker...");
         mqtt_client.connect(connect_opts).await.unwrap_or_else(|err| {
@@ -58,6 +58,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         });
 
         while let Some(msg) = rx.next().await {
+            println!("{:?}", msg);
             if let Some(msg) = msg {
                 match msg.topic() {
                     "/lumos/events" => {
@@ -75,16 +76,18 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 
 async fn handle_event(payload: &[u8]) {
+    println!("Handling event!");
     if let Ok(button_event) = ButtonEvent::parse_from_bytes(payload) {
         if button_event.event == EventType::EVENT_BUTTON_RELEASE {
             let aurora = Aurora::new(
-                Ipv4Addr::new(192, 168, 1, 12),
+                Ipv4Addr::new(192, 168, 1, 3),
                 None,
-                &"I8NTBbt5IsFhZ5yAuSaa38m9j70m4odx".to_string(),
+                &"Az8ugr70kZFK2xMKJGz8y4YoPCRDoSpR".to_string(),
             );
 
             match button_event.button_id {
                 111 => {
+                    println!("Turning on Aurora");
                     aurora.turn_on().await;
                 }
                 113 => {
